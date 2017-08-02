@@ -71,18 +71,17 @@ function authenticate_ssh(creds::SSHCredentials, libgit2credptr::Ptr{Ptr{Void}},
     end
 
     if creds.prompt_if_incorrect
-        # if username is not provided, then prompt for it
-        username = if username_ptr == Cstring(C_NULL)
+        # if username is not provided or empty, then prompt for it
+        username = username_ptr != Cstring(C_NULL) ? unsafe_string(username_ptr) : ""
+        if isempty(username)
             uname = creds.user # check if credentials were already used
             if !isusedcreds
-                uname
+                username = uname
             else
                 response = prompt("Username for '$schema$host'", default=uname)
                 isnull(response) && return user_abort()
-                unsafe_get(response)
+                username = unsafe_get(response)
             end
-        else
-            unsafe_string(username_ptr)
         end
 
         # For SSH we need a private key location
