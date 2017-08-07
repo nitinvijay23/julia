@@ -212,7 +212,7 @@ struct BoundsError        <: Exception
     BoundsError(@nospecialize(a), i) = (@_noinline_meta; new(a,i))
 end
 struct DivideError        <: Exception end
-struct OverflowError      <: Exception end
+struct COverflowError     <: Exception end
 struct OutOfMemoryError   <: Exception end
 struct ReadOnlyMemoryError<: Exception end
 struct SegmentationFault  <: Exception end
@@ -240,6 +240,9 @@ struct InexactError <: Exception
     val
 
     InexactError(f::Symbol, @nospecialize(T), @nospecialize(val)) = (@_noinline_meta; new(f, T, val))
+end
+struct OverflowError <: Exception
+    msg
 end
 
 abstract type DirectIndexString <: AbstractString end
