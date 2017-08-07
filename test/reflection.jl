@@ -348,7 +348,7 @@ for (f, t) in Any[(definitely_not_in_sysimg, Tuple{}),
                   (Base.:+, Tuple{Int, Int})]
     meth = which(f, t)
     tt = Tuple{typeof(f), t.parameters...}
-    (ti, env) = ccall(:jl_match_method, Any, (Any, Any), tt, meth.sig)::SimpleVector
+    (ti, env) = ccall(:jl_type_intersection_with_env, Any, (Any, Any), tt, meth.sig)::SimpleVector
     @test ti === tt # intersection should be a subtype
     world = typemax(UInt)
     linfo = ccall(:jl_specializations_get_linfo, Ref{Core.MethodInstance}, (Any, Any, Any, UInt), meth, tt, env, world)

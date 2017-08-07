@@ -1448,7 +1448,7 @@ function invoke_tfunc(@nospecialize(f), @nospecialize(types), @nospecialize(argt
         return Any
     end
     meth = entry.func
-    (ti, env) = ccall(:jl_env_from_type_intersection, Any, (Any, Any), argtype, meth.sig)::SimpleVector
+    (ti, env) = ccall(:jl_type_intersection_with_env, Any, (Any, Any), argtype, meth.sig)::SimpleVector
     rt, edge = typeinf_edge(meth::Method, ti, env, sv)
     edge !== nothing && add_backedge!(edge::MethodInstance, sv)
     return rt
@@ -1825,7 +1825,7 @@ function abstract_call_method(method::Method, @nospecialize(f), @nospecialize(si
 
     # if sig changed, may need to recompute the sparams environment
     if isa(method.sig, UnionAll) && isempty(sparams)
-        recomputed = ccall(:jl_match_method, Any, (Any, Any), sig, method.sig)::SimpleVector
+        recomputed = ccall(:jl_type_intersection_with_env, Any, (Any, Any), sig, method.sig)::SimpleVector
         sig = recomputed[1]
         if !isa(unwrap_unionall(sig), DataType) # probably Union{}
             return Any
@@ -4253,7 +4253,7 @@ function inlineable(@nospecialize(f), @nospecialize(ft), e::Expr, atypes::Vector
     else
         invoke_data = invoke_data::InvokeData
         method = invoke_data.entry.func
-        (metharg, methsp) = ccall(:jl_match_method, Any, (Any, Any),
+        (metharg, methsp) = ccall(:jl_type_intersection_with_env, Any, (Any, Any),
                                   atype_unlimited, method.sig)::SimpleVector
         methsp = methsp::SimpleVector
     end

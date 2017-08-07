@@ -1258,7 +1258,7 @@ function detect_ambiguities(mods...;
 end
 
 """
-    detect_unbound_args(mod1, mod2...; imported=false)
+    detect_unbound_args(mod1, mod2...; imported=false, recursive=false)
 
 Returns a vector of `Method`s which may have unbound type parameters.
 Use `imported=true` if you wish to also test functions that were
@@ -1304,17 +1304,17 @@ end
 
 # find if var will be constrained to have a definite value
 # in any concrete leaftype subtype of typ
-function constrains_param(var::TypeVar, @nospecialize(typ), cov::Bool)
+function constrains_param(var::TypeVar, @nospecialize(typ), covariant::Bool)
     typ === var && return true
     while typ isa UnionAll
-        cov && constrains_param(var, typ.var.ub, cov) && return true
+        covariant && constrains_param(var, typ.var.ub, covariant) && return true
         # typ.var.lb doesn't constrain var
         typ = typ.body
     end
     if typ isa Union
         # for unions, verify that both options would constrain var
-        ba = constrains_param(var, typ.a, cov)
-        bb = constrains_param(var, typ.b, cov)
+        ba = constrains_param(var, typ.a, covariant)
+        bb = constrains_param(var, typ.b, covariant)
         (ba && bb) && return true
     elseif typ isa DataType
         # return true if any param constrains var
@@ -1324,16 +1324,16 @@ function constrains_param(var::TypeVar, @nospecialize(typ), cov::Bool)
                 # vararg tuple needs special handling
                 for i in 1:(fc - 1)
                     p = typ.parameters[i]
-                    constrains_param(var, p, cov) && return true
+                    constrains_param(var, p, covariant) && return true
                 end
                 lastp = typ.parameters[fc]
                 vararg = Base.unwrap_unionall(lastp)
                 if vararg isa DataType && vararg.name === Base._va_typename
                     N = vararg.parameters[2]
-                    constrains_param(var, N, cov) && return true
+                    constrains_param(var, N, covariant) && return true
                     # T = vararg.parameters[1] doesn't constrain var
                 else
-                    constrains_param(var, lastp, cov) && return true
+                    constrains_param(var, lastp, covariant) && return true
                 end
             else
                 for i in 1:fc

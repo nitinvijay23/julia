@@ -171,12 +171,12 @@ convert(::Type{T}, x::Tuple{Any, Vararg{Any}}) where {T<:Tuple} =
 # TODO: the following definitions are equivalent (behaviorally) to the above method
 # I think they may be faster / more efficient for inference,
 # if we could enable them, but are they?
-# TODO: These currently can't be used (#21026) since with
-#     z(::Type{Tuple{Val{T}} where T}) = T
+# TODO: These currently can't be used (#21026, #23017) since with
+#     z(::Type{<:Tuple{Vararg{T}}}) where {T} = T
 #   calling
-#     z(Tuple{Val})
+#     z(Tuple{Val{T}} where T)
 #   fails, even though `Type{Tuple{Val}} == Type{Tuple{Val{S}} where S}`
-#   and so T should be Val{S} where S
+#   and so T should be `Val` (aka `Val{S} where S`)
 #convert(_::Type{Tuple{S}}, x::Tuple{S}) where {S} = x
 #convert(_::Type{Tuple{S}}, x::Tuple{Any}) where {S} = (convert(S, x[1]),)
 #convert(_::Type{T}, x::T) where {S, N, T<:Tuple{S, Vararg{S, N}}} = x
